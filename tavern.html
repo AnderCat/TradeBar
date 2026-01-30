@@ -1,0 +1,1232 @@
+<!doctype html>
+<html lang="zh-Hant">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>結構酒館｜SNR 修行任務板</title>
+    <style>
+        :root {
+            --bg0: #0b0f14;
+            --bg1: #101826;
+            --wood0: #2a1a12;
+            --wood1: #3a2419;
+            --ink: #e8e1d7;
+            --muted: #b7ad9f;
+            --gold: #f7c65f;
+            --red: #ff6b6b;
+            --green: #7dff9b;
+            --blue: #7db7ff;
+            --shadow: rgba(0, 0, 0, .45);
+            --card: rgba(16, 24, 38, 0.55);
+        }
+
+        * {
+            box-sizing: border-box
+        }
+
+        body {
+            margin: 0;
+            min-height: 100svh;
+            font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", sans-serif;
+            color: var(--ink);
+            background:
+                /* 暖色燭光遮罩（很重要） */
+                linear-gradient(rgba(40, 25, 15, 0.75),
+                    rgba(40, 25, 15, 0.75)),
+                url("background.jpg");
+            /* ← 換成你的圖片檔名 */
+
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            background-attachment: fixed;
+            /* 有酒館牆面的穩定感 */
+            overflow-x: hidden;
+        }
+
+        /* faux tavern particles */
+        .embers {
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            background:
+                radial-gradient(1px 1px at 10% 30%, rgba(247, 198, 95, .55), transparent 60%),
+                radial-gradient(1px 1px at 40% 60%, rgba(247, 198, 95, .35), transparent 60%),
+                radial-gradient(1px 1px at 75% 45%, rgba(247, 198, 95, .45), transparent 60%),
+                radial-gradient(1px 1px at 55% 20%, rgba(247, 198, 95, .28), transparent 60%),
+                radial-gradient(1px 1px at 85% 75%, rgba(247, 198, 95, .20), transparent 60%);
+            opacity: .9;
+            filter: blur(.1px);
+            animation: float 10s linear infinite;
+        }
+
+        @keyframes float {
+            0% {
+                transform: translateY(0)
+            }
+
+            100% {
+                transform: translateY(-30px)
+            }
+        }
+
+        header {
+            padding: 22px 18px 10px;
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            align-items: flex-end;
+            justify-content: space-between;
+            gap: 16px;
+        }
+
+        .brand {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .brand h1 {
+            margin: 0;
+            font-size: 20px;
+            letter-spacing: .08em;
+        }
+
+        .brand .sub {
+            color: var(--muted);
+            font-size: 13px;
+            line-height: 1.4;
+        }
+
+        .hud {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            justify-content: flex-end;
+        }
+
+        .pill {
+            background: rgba(0, 0, 0, .22);
+            border: 1px solid rgba(255, 255, 255, .08);
+            border-radius: 999px;
+            padding: 10px 12px;
+            min-width: 160px;
+            box-shadow: 0 12px 30px var(--shadow);
+            backdrop-filter: blur(6px);
+        }
+
+        .pill .k {
+            color: var(--muted);
+            font-size: 12px;
+            margin-bottom: 6px;
+            display: flex;
+            justify-content: space-between;
+            gap: 8px;
+        }
+
+        .pill .v {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            font-weight: 700;
+        }
+
+        .bar {
+            height: 10px;
+            border-radius: 999px;
+            background: rgba(255, 255, 255, .06);
+            overflow: hidden;
+            flex: 1;
+        }
+
+        .fill {
+            height: 100%;
+            width: 50%;
+            border-radius: 999px;
+            background: linear-gradient(90deg, rgba(247, 198, 95, .95), rgba(247, 198, 95, .45));
+        }
+
+        .fill.hp {
+            background: linear-gradient(90deg, rgba(255, 107, 107, .95), rgba(255, 107, 107, .45));
+        }
+
+        .fill.good {
+            background: linear-gradient(90deg, rgba(125, 255, 155, .95), rgba(125, 255, 155, .45));
+        }
+
+        main {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 10px 18px 28px;
+            display: grid;
+            grid-template-columns: 360px 1fr;
+            gap: 16px;
+        }
+
+        @media (max-width: 980px) {
+            main {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* bartender card */
+        .bartender {
+            position: relative;
+            background: linear-gradient(180deg, rgba(58, 36, 25, .55), rgba(16, 24, 38, .55));
+            border: 1px solid rgba(255, 255, 255, .08);
+            border-radius: 18px;
+            padding: 16px 16px 14px;
+            box-shadow: 0 18px 50px var(--shadow);
+            overflow: hidden;
+        }
+
+        .bartender:before {
+            content: "";
+            position: absolute;
+            inset: -50px -60px auto auto;
+            width: 180px;
+            height: 180px;
+            background: radial-gradient(circle at 30% 30%, rgba(247, 198, 95, .25), transparent 65%);
+            transform: rotate(20deg);
+        }
+
+        .portrait {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .face {
+            border-radius: 16px;
+            border: 1px solid rgba(255, 255, 255, .1);
+            box-shadow: inset 0 0 0 1px rgba(0, 0, 0, .35);
+            position: relative;
+            overflow: hidden;
+            width: 64px;
+            height: 64px;
+            background: rgba(0, 0, 0, .3);
+        }
+
+        .face img {
+            width: 100%;
+            height: 100%;
+            display: block;
+            object-fit: cover;
+            /* 不變形，裁切填滿 */
+        }
+
+        /* simple silhouette */
+        .face:before {
+            content: "";
+            position: absolute;
+            inset: 10px 12px 12px 12px;
+            border-radius: 14px 14px 18px 18px;
+            background: linear-gradient(180deg, rgba(232, 225, 215, .22), rgba(232, 225, 215, .06));
+            filter: drop-shadow(0 10px 18px rgba(0, 0, 0, .35));
+        }
+
+        .face:after {
+            content: "";
+            position: absolute;
+            left: 12px;
+            right: 12px;
+            top: 10px;
+            height: 22px;
+            border-radius: 14px 14px 10px 10px;
+            background: linear-gradient(180deg, rgba(0, 0, 0, .35), transparent);
+            opacity: .75;
+        }
+
+        .portrait .who {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .portrait .who .name {
+            font-weight: 800;
+            letter-spacing: .06em;
+        }
+
+        .portrait .who .role {
+            color: var(--muted);
+            font-size: 12px;
+        }
+
+        .npc {
+            color: rgba(232, 225, 215, .92);
+            font-size: 13px;
+            line-height: 1.55;
+            margin: 8px 0 12px;
+        }
+
+        .controls {
+            display: grid;
+            gap: 10px;
+        }
+
+        .row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+
+        .field {
+            background: rgba(0, 0, 0, .22);
+            border: 1px solid rgba(255, 255, 255, .08);
+            border-radius: 14px;
+            padding: 10px 10px;
+        }
+
+        label {
+            display: block;
+            color: var(--muted);
+            font-size: 12px;
+            margin-bottom: 6px;
+        }
+
+        input[type="number"],
+        select {
+            width: 100%;
+            padding: 10px 10px;
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, .10);
+            background: rgba(16, 24, 38, .50);
+            color: var(--ink);
+            outline: none;
+        }
+
+        .checkline {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 10px;
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, .10);
+            background: rgba(16, 24, 38, .50);
+            user-select: none;
+            cursor: pointer;
+        }
+
+        .checkline input {
+            width: 16px;
+            height: 16px;
+        }
+
+        .btns {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-top: 2px;
+        }
+
+        button {
+            border: 1px solid rgba(255, 255, 255, .10);
+            background: rgba(0, 0, 0, .25);
+            color: var(--ink);
+            padding: 10px 12px;
+            border-radius: 14px;
+            cursor: pointer;
+            transition: transform .06s ease, background .2s ease;
+            box-shadow: 0 14px 30px var(--shadow);
+        }
+
+        button:hover {
+            background: rgba(0, 0, 0, .35);
+        }
+
+        button:active {
+            transform: translateY(1px);
+        }
+
+        .danger {
+            border-color: rgba(255, 107, 107, .35);
+        }
+
+        .gold {
+            border-color: rgba(247, 198, 95, .35);
+        }
+
+        /* quest board */
+        .board {
+            background: linear-gradient(180deg, rgba(42, 26, 18, .55), rgba(16, 24, 38, .55));
+            border: 1px solid rgba(255, 255, 255, .08);
+            border-radius: 18px;
+            padding: 16px;
+            box-shadow: 0 18px 50px var(--shadow);
+            overflow: hidden;
+            position: relative;
+        }
+
+        .board:before {
+            content: "";
+            position: absolute;
+            inset: -60px -80px auto auto;
+            width: 240px;
+            height: 240px;
+            background: radial-gradient(circle at 30% 30%, rgba(125, 183, 255, .10), transparent 65%);
+            transform: rotate(18deg);
+        }
+
+        .board h2 {
+            margin: 0 0 12px;
+            font-size: 16px;
+            letter-spacing: .08em;
+            color: rgba(232, 225, 215, .95);
+        }
+
+        .cols {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 12px;
+        }
+
+        @media (max-width: 980px) {
+            .cols {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .panel {
+            background: rgba(0, 0, 0, .20);
+            border: 1px solid rgba(255, 255, 255, .08);
+            border-radius: 16px;
+            padding: 12px;
+            min-height: 210px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .panel .tag {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 800;
+            letter-spacing: .06em;
+            margin-bottom: 8px;
+        }
+
+        .tag .dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 999px;
+            background: var(--gold);
+            box-shadow: 0 0 20px rgba(247, 198, 95, .22);
+        }
+
+        .tag.daily .dot {
+            background: var(--green);
+        }
+
+        .tag.ongoing .dot {
+            background: var(--blue);
+        }
+
+        .tag.bounty .dot {
+            background: var(--red);
+        }
+
+        .quest {
+            border: 1px dashed rgba(255, 255, 255, .12);
+            border-radius: 14px;
+            padding: 10px;
+            margin-top: 10px;
+            background: rgba(16, 24, 38, .30);
+        }
+
+        .quest .title {
+            font-weight: 800;
+            margin-bottom: 6px;
+        }
+
+        .quest .desc {
+            color: var(--muted);
+            font-size: 12px;
+            line-height: 1.45;
+            margin-bottom: 8px;
+        }
+
+        .quest .meta {
+            display: flex;
+            justify-content: space-between;
+            gap: 10px;
+            font-size: 12px;
+            color: rgba(232, 225, 215, .85);
+        }
+
+        .small {
+            font-size: 12px;
+            color: var(--muted);
+            line-height: 1.45;
+        }
+
+        footer {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 18px 26px;
+            color: rgba(232, 225, 215, .60);
+            font-size: 12px;
+        }
+
+        .kbd {
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+            background: rgba(0, 0, 0, .25);
+            border: 1px solid rgba(255, 255, 255, .08);
+            padding: 2px 6px;
+            border-radius: 8px;
+        }
+
+        .stepper {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .stepper-btn {
+            width: 40px;
+            height: 40px;
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, .12);
+            background: rgba(0, 0, 0, .25);
+            color: var(--ink);
+            cursor: pointer;
+            font-size: 18px;
+            font-weight: 800;
+            line-height: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            user-select: none;
+        }
+
+        .stepper-btn:hover {
+            background: rgba(0, 0, 0, .35);
+        }
+
+        .stepper-btn:active {
+            transform: translateY(1px);
+        }
+
+        .stepper input#btCount {
+            text-align: center;
+            width: 100%;
+            flex: 1;
+        }
+
+        /* 移除 number input 的上下箭頭（Chrome, Edge, Safari） */
+        input[type="number"]::-webkit-outer-spin-button,
+        input[type="number"]::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+
+        #npcLine { white-space: pre-line; }
+    </style>
+</head>
+
+<body>
+    <div class="embers" aria-hidden="true"></div>
+
+    <header>
+        <div class="brand">
+            <h1>結構酒館｜SNR 修行任務板</h1>
+            <div class="sub">每天檢查一次。不是靠心情做交易，是靠結構活下來。</div>
+        </div>
+
+        <div class="hud">
+            <div class="pill" id="pillLevel">
+                <div class="k"><span>等級</span><span id="titleBadge">見習交易者</span></div>
+                <div class="v"><span id="levelVal">1</span><span class="small" id="xpToNext">距離下級：20 XP</span></div>
+            </div>
+
+            <div class="pill">
+                <div class="k"><span>XP</span><span id="xpVal">0</span></div>
+                <div class="v">
+                    <div class="bar" title="XP 進度">
+                        <div class="fill" id="xpFill"></div>
+                    </div>
+                    <span id="xpPct" class="small">0%</span>
+                </div>
+            </div>
+
+            <div class="pill" id="hpPill">
+                <div class="k"><span>HP</span><span id="hpVal">100</span></div>
+                <div class="v">
+                    <div class="bar" title="HP">
+                        <div class="fill hp" id="hpFill"></div>
+                    </div>
+                    <span id="hpState" class="small">安全</span>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main>
+        <section class="bartender">
+            <div class="portrait">
+                <div class="face" aria-hidden="true">
+                    <img src="face.png" alt="酒館老闆" />
+                </div>
+                <div class="who">
+                    <div class="name">酒館老闆</div>
+                    <div class="role">任務發放者｜規則守門人</div>
+                </div>
+            </div>
+
+            <div class="npc" id="npcLine">
+                「冒險者。今天只要做一件正確的事，就算活著。」
+            </div>
+
+            <div class="controls">
+                <div class="row">
+                    <div class="field">
+                        <label for="btCount">今日回測筆數</label>
+                        <div class="stepper">
+                            <button type="button" id="btMinus" class="stepper-btn" aria-label="回測筆數減少">−</button>
+                            <input id="btCount" type="number" min="0" step="1" value="0" inputmode="numeric" />
+                            <button type="button" id="btPlus" class="stepper-btn" aria-label="回測筆數增加">＋</button>
+                        </div>
+                    </div>
+                    <div class="field">
+                        <label for="liveNote">直播筆記</label>
+                        <select id="liveNote">
+                            <option value="none">無</option>
+                            <option value="full">有</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="field">
+                    <label>今日是否情緒單 / 非規則單</label>
+                    <div class="checkline" id="emoWrap">
+                        <input id="emoTrade" type="checkbox" />
+                        <span>有（扣血很重，別亂勾）</span>
+                    </div>
+                </div>
+
+                <div class="btns">
+                    <button class="gold" id="btnGetQuests">領取今日任務</button>
+                    <button id="btnReport">回報完成（計入今日）</button>
+                    <button class="danger" id="btnEndDay">結束今日（每日檢查 / 扣血）</button>
+                    <button id="btnReset">重置存檔</button>
+                    <button id="btnClaim">已領取獎勵（清空待領）</button>
+                </div>
+
+                <div class="small">
+                    提示：你可以把這頁當成「酒館櫃台」。<br>
+                    流程：<span class="kbd">領任務</span> → 做事 → <span class="kbd">回報完成</span> → 每天一次按 <span
+                        class="kbd">結束今日</span>。
+                </div>
+            </div>
+        </section>
+
+        <section class="board">
+            <h2>任務公告板</h2>
+
+            <div class="cols">
+                <div class="panel">
+                    <div class="tag daily"><span class="dot"></span><span>每日任務</span></div>
+                    <div id="dailySlot"></div>
+                </div>
+
+                <div class="panel">
+                    <div class="tag ongoing"><span class="dot"></span><span>修行任務（主線）</span></div>
+                    <div id="ongoingSlot"></div>
+                </div>
+
+                <div class="panel">
+                    <div class="tag bounty"><span class="dot"></span><span>討伐任務（觸發）</span></div>
+                    <div id="bountySlot"></div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <div>本地存檔：使用瀏覽器 LocalStorage（不會上傳）。</div>
+    </footer>
+
+    <script>
+        (() => {
+            /** ---------- State ---------- */
+            const STORE_KEY = "tavern_snr_state_v1";
+
+            const defaultState = () => ({
+                xp: 0,
+                level: 1,
+                hp: 100,
+                // today inputs
+                today: { bt: 0, live: "none", emo: false },
+                // quests
+                quests: {
+                    daily: [],
+                    ongoing: {
+                        id: "chain-structure-1",
+                        title: "🧩《結構理解 I》",
+                        desc: "完成 20 筆 SNR 回測（累積）。",
+                        target: 20,
+                        progress: 0,
+                        reward: "完成：+40 XP / +20 HP",
+                    },
+                    bounty: null
+                },
+                // bookkeeping
+                dayCount: 0,
+                lastReportHash: "",
+                pendingRewards: [],
+            });
+
+            let state = loadState();
+
+            /** ---------- DOM ---------- */
+            const $ = (id) => document.getElementById(id);
+
+            const btCount = $("btCount");
+            const btMinus = $("btMinus");
+            const btPlus = $("btPlus");
+            const liveNote = $("liveNote");
+            const emoTrade = $("emoTrade");
+            const emoWrap = $("emoWrap");
+
+            const dailySlot = $("dailySlot");
+            const ongoingSlot = $("ongoingSlot");
+            const bountySlot = $("bountySlot");
+
+            const btnGetQuests = $("btnGetQuests");
+            const btnReport = $("btnReport");
+            const btnEndDay = $("btnEndDay");
+            const btnReset = $("btnReset");
+
+            const levelVal = $("levelVal");
+            const titleBadge = $("titleBadge");
+            const xpVal = $("xpVal");
+            const xpFill = $("xpFill");
+            const xpPct = $("xpPct");
+            const xpToNext = $("xpToNext");
+
+            const hpVal = $("hpVal");
+            const hpFill = $("hpFill");
+            const hpState = $("hpState");
+            const hpPill = $("hpPill");
+
+            const npcLine = $("npcLine");
+
+            /** ---------- Rules ---------- */
+            function xpFromToday(t) {
+                const btXP = t.bt * 3;
+                const liveXP = (t.live === "full") ? 10 : (t.live === "fuzzy") ? 5 : 0;
+                return btXP + liveXP;
+            }
+
+            function hpDeltaEndOfDay(t) {
+                // strict A rules: no backtest => -15; emo => -25; live without notes => -10
+                let d = 0;
+                if (t.emo) d -= 25;
+                if (t.bt === 0) d -= 15;
+                return d;
+            }
+
+            function hpHealFromActions(t) {
+                // heal is only for correct actions; used when reporting completion (not end day)
+                // backtest 3 => +5 HP (floor)
+                const heals = Math.floor(t.bt / 3) * 5;
+                const liveHeal = (t.live === "full") ? 10 : 0;
+                return heals + liveHeal;
+            }
+
+            function levelNeedXPForNext(level) {
+                // per your staged curve:
+                // Lv1-10: each level needs 20
+                // Lv11-30: 30 + level*2
+                // Lv31-70: 120 + level*3
+                // Lv71-120: 300 + level*5 (not used here)
+                if (level <= 10) return 20;
+                if (level <= 30) return 30 + level * 2;
+                if (level <= 70) return 120 + level * 3;
+                return 300 + level * 5;
+            }
+
+            function titleForLevel(level) {
+                if (level < 10) return "見習交易者";
+                if (level < 30) return "交易學徒";
+                if (level < 70) return "交易大師";
+                return "交易宗師";
+            }
+
+            function rewardHint(level) {
+                // simplified; you can expand
+                if (level === 5) return "🍬 NT$100–200";
+                if (level === 10) return "🍰 NT$300–500（轉職完成後獲得）";
+                if (level === 15) return "🍬 NT$100–200";
+                if (level === 20) return "🍰 NT$300–500";
+                if (level === 25) return "🍬 NT$100–200";
+                if (level === 30) return "🏆 NT$800–1200（轉職完成後獲得）";
+                if (level === 35) return "🍬 NT$200–300";
+                if (level === 40) return "🍰 NT$600–800";
+                if (level === 45) return "🍬 NT$200–300";
+                if (level === 50) return "🍰 NT$1200–1500";
+                if (level === 55) return "🍬 NT$300–400";
+                if (level === 60) return "🍰 NT$800–1000";
+                if (level === 65) return "🍬 NT$300–400";
+                if (level === 70) return "🏆 NT$2000–3000（轉職完成後獲得）";
+                return "—";
+            }
+
+            /** ---------- Quest System ---------- */
+            const DAILY_POOL = [
+                {
+                    id: "daily-structure-3",
+                    title: "📘 結構觀察",
+                    desc: "回測 3 筆（完整紀錄）。",
+                    check: (t) => t.bt >= 3,
+                    rewardText: "+3 XP",
+                    xpReward: 3,
+                    done: false
+                },
+                {
+                    id: "daily-structure-1",
+                    title: "📌 只做一筆",
+                    desc: "回測 1 筆，不能挑簡單的。",
+                    check: (t) => t.bt >= 1,
+                    rewardText: "+1 XP",
+                    xpReward: 1,
+                    done: false
+                },
+                {
+                    id: "daily-live-full",
+                    title: "🕯️ 酒館聽課",
+                    desc: "看 1 場直播並寫完整筆記。",
+                    check: (t) => t.live === "full",
+                    rewardText: "+10 XP",
+                    xpReward: 10,
+                    done: false
+                },
+                {
+                    id: "daily-no-trade",
+                    title: "😎 只看不做",
+                    desc: "看盤 10 分鐘，不下單（用誠實勾選）。",
+                    check: (t) => true, // honor-based, we won't track time
+                    rewardText: "+3 XP",
+                    xpReward: 3,
+                    done: false
+                }
+            ];
+
+            const btnClaim = document.getElementById("btnClaim");
+            btnClaim.addEventListener("click", () => {
+                if (!state.pendingRewards.length) return toast("目前沒有待領獎勵。");
+                state.pendingRewards = [];
+                saveState();
+                renderHUD();
+                toast("🎁 已清空待領獎勵。");
+            });
+
+
+            function pickDailyQuests() {
+                // pick 2 distinct
+                const pool = [...DAILY_POOL];
+                shuffle(pool);
+                return pool.slice(0, 2);
+            }
+
+            function maybeSpawnBounty() {
+                // Trigger conditions:
+                // hp <= 40 OR 2 days without backtest not tracked; here we use hp only for demo.
+                if (state.hp <= 40) {
+                    return {
+                        id: "bounty-fog",
+                        title: "☠️《懶惰之霧》",
+                        desc: "連續 3 天，每天至少回測 1 筆（本 Demo 以『接下來 3 次結束今日』模擬）。",
+                        target: 3,
+                        progress: state.quests.bounty?.id === "bounty-fog" ? state.quests.bounty.progress : 0,
+                        reward: "完成：HP 回滿 +25 XP（手動觸發）"
+                    };
+                }
+                return null;
+            }
+
+            /** ---------- Actions ---------- */
+            function loadState() {
+                try {
+                    const raw = localStorage.getItem(STORE_KEY);
+                    if (!raw) return defaultState();
+                    const parsed = JSON.parse(raw);
+                    // shallow merge
+                    return { ...defaultState(), ...parsed, today: { ...defaultState().today, ...(parsed.today || {}) } };
+                } catch {
+                    return defaultState();
+                }
+            }
+
+            function saveState() {
+                localStorage.setItem(STORE_KEY, JSON.stringify(state));
+            }
+
+            function syncInputsFromState() {
+                btCount.value = state.today.bt;
+                liveNote.value = state.today.live;
+                emoTrade.checked = state.today.emo;
+            }
+
+            function syncStateFromInputs() {
+                state.today.bt = clampInt(btCount.value, 0, 9999);
+                state.today.live = liveNote.value;
+                state.today.emo = !!emoTrade.checked;
+            }
+
+            function renderHUD() {
+                levelVal.textContent = String(state.level);
+                titleBadge.textContent = titleForLevel(state.level);
+                xpVal.textContent = String(state.xp);
+
+                const need = levelNeedXPForNext(state.level);
+                const intoLevel = xpIntoCurrentLevel(); // xp accumulated since reaching this level
+                const pct = Math.max(0, Math.min(100, (intoLevel / need) * 100));
+                xpFill.style.width = pct + "%";
+                xpPct.textContent = Math.round(pct) + "%";
+                xpToNext.textContent = `距離下級：${Math.max(0, need - intoLevel)} XP`;
+
+                hpVal.textContent = String(state.hp);
+                hpFill.style.width = (state.hp / 100) * 100 + "%";
+
+                const st = state.hp <= 20 ? "瀕死" : state.hp <= 40 ? "危險" : state.hp <= 70 ? "警戒" : "安全";
+                hpState.textContent = st;
+                hpPill.classList.toggle("danger", state.hp <= 40);
+
+                const pendingText = state.pendingRewards.length
+                    ? "待領：" + state.pendingRewards.map(r => `Lv.${r.level} ${r.hint}`).join("、")
+                    : "";
+                const hint = rewardHint(state.level);
+                npcLine.textContent =
+                    state.hp <= 40
+                        ? `「你身上有血味。先別逞強——去討伐『懶惰之霧』。」`
+                        : hint !== "—"
+                            ? `「目前獎勵： 你可以獲得 ${hint} 自選獎品。」`
+                            : `「冒險者。今天只要做一件正確的事，就算活著。」`;
+                npcLine.textContent = (npcLine.textContent + (pendingText ? `\r\n${pendingText}` : ""));
+            }
+
+            function xpIntoCurrentLevel() {
+                // Compute XP consumed by previous levels (rough, based on same curve)
+                let consumed = 0;
+                for (let lv = 1; lv < state.level; lv++) {
+                    consumed += levelNeedXPForNext(lv);
+                }
+                return state.xp - consumed;
+            }
+
+            function tryLevelUp() {
+                // multi-level up if huge XP
+                let leveled = false;
+                while (true) {
+                    const need = levelNeedXPForNext(state.level);
+                    if (xpIntoCurrentLevel() >= need) {
+                        state.level += 1;
+                        state.hp = 100; // on level up, refill HP
+                        leveled = true;
+                        // on important milestones, you could show a popup; we'll just alert.
+                        const hint = rewardHint(state.level);
+                        if (hint !== "—") {
+                            const already = state.pendingRewards.some(r => r.level === state.level);
+                            if (!already) state.pendingRewards.push({ level: state.level, hint });
+                        }
+                        if (hint !== "—") toast(`🎉 升等到 Lv.${state.level}！獎勵：${hint}`);
+                        else toast(`🎉 升等到 Lv.${state.level}！HP 回滿。`);
+                    } else break;
+                }
+                return leveled;
+            }
+
+            function renderBoard() {
+                // daily
+                dailySlot.innerHTML = "";
+                if (!state.quests.daily.length) {
+                    dailySlot.innerHTML = `<div class="small">尚未領取。按「領取今日任務」。</div>`;
+                } else {
+                    state.quests.daily.forEach(q => dailySlot.appendChild(questCard(q, "daily")));
+                }
+
+                // ongoing
+                ongoingSlot.innerHTML = "";
+                ongoingSlot.appendChild(questCard(state.quests.ongoing, "ongoing", true));
+
+                // bounty
+                bountySlot.innerHTML = "";
+                if (!state.quests.bounty) {
+                    bountySlot.innerHTML = `<div class="small">目前沒有討伐任務（保持 HP > 40）。</div>`;
+                } else {
+                    bountySlot.appendChild(questCard(state.quests.bounty, "bounty", true));
+                }
+            }
+
+            function questCard(q, kind, showProgress = false) {
+                const el = document.createElement("div");
+                el.className = "quest";
+
+                // daily 的完成狀態（沒有就當 false）
+                const done = !!q.done;
+
+                const prog = showProgress && q.target ? `${q.progress}/${q.target}` : "";
+                const metaLeft = (kind === "daily") ? (done ? "已完成" : "未完成") : `進度 ${prog}`;
+
+                // daily 任務才顯示「完成/取消完成」按鈕
+                const actionHTML = (kind === "daily")
+                    ? `
+        <div style="margin-top:10px; display:flex; gap:8px;">
+            <button
+            type="button"
+            class="daily-toggle"
+            data-id="${escapeHTML(q.id)}"
+            style="padding:8px 10px; border-radius:12px;"
+            >
+            ${done ? "取消完成" : "標記完成"}
+            </button>
+        </div>
+        `
+                    : "";
+
+                // 完成狀態的視覺（可自行調）
+                if (kind === "daily" && done) {
+                    el.style.opacity = "0.65";
+                    el.style.borderStyle = "solid";
+                }
+
+                el.innerHTML = `
+        <div class="title">${escapeHTML(q.title)}</div>
+        <div class="desc">${escapeHTML(q.desc)}</div>
+        <div class="meta">
+        <span>${metaLeft}</span>
+        <span>${escapeHTML(q.rewardText || q.reward || "")}</span>
+        </div>
+        ${actionHTML}
+    `;
+
+                return el;
+            }
+
+
+            function getQuests() {
+                state.quests.daily = pickDailyQuests().map(q => ({ ...q, done: false, paid: false }));
+                // bounty can spawn based on hp
+                state.quests.bounty = maybeSpawnBounty();
+
+                saveState();
+                renderBoard();
+                renderHUD();
+                toast("📜 今日任務已張貼。");
+            }
+
+            function reportComplete() {
+                syncStateFromInputs();
+
+                // Prevent double-report on same input (simple hash)
+                const hash = JSON.stringify(state.today);
+                if (hash === state.lastReportHash) {
+                    toast("你剛剛已回報過同樣內容。");
+                    return;
+                }
+
+                // XP gain
+                const gainedXP = xpFromToday(state.today);
+                state.xp += gainedXP;
+
+                // heal from correct actions (NOT the end-of-day penalty)
+                const heal = hpHealFromActions(state.today);
+                state.hp = clampInt(state.hp + heal, 0, 100);
+
+                // update ongoing chain progress (structure I uses backtest count)
+                if (state.quests.ongoing?.id === "chain-structure-1") {
+                    state.quests.ongoing.progress += state.today.bt;
+                    if (state.quests.ongoing.progress >= state.quests.ongoing.target) {
+                        // reward
+                        state.xp += 40;
+                        state.hp = clampInt(state.hp + 20, 0, 100);
+                        toast("🧩《結構理解 I》完成！+40 XP / +20 HP");
+                        // reset to next chain (simple)
+                        state.quests.ongoing = {
+                            id: "chain-errors-1",
+                            title: "🧩《錯誤分類 I》",
+                            desc: "整理 10 筆『錯誤原因』（本 Demo 用：回測滿 10 筆即算 1）。",
+                            target: 10,
+                            progress: 0,
+                            reward: "完成：+30 XP",
+                        };
+                    }
+                } else if (state.quests.ongoing?.id === "chain-errors-1") {
+                    // For demo: each 10 backtests counts as 1 progress unit
+                    state.quests.ongoing.progress += Math.floor(state.today.bt / 10);
+                    if (state.quests.ongoing.progress >= state.quests.ongoing.target) {
+                        state.xp += 30;
+                        toast("🧩《錯誤分類 I》完成！+30 XP");
+                        // loop back
+                        state.quests.ongoing = defaultState().quests.ongoing;
+                    }
+                }
+
+                state.lastReportHash = hash;
+
+                // level up check (refills HP on each level)
+                tryLevelUp();
+
+                saveState();
+                renderBoard();
+                renderHUD();
+                toast(`✅ 回報完成：+${gainedXP} XP，回血 +${heal} HP（若有）。`);
+            }
+
+            function endDay() {
+                syncStateFromInputs();
+
+                // Apply daily penalties
+                const d = hpDeltaEndOfDay(state.today);
+                state.hp = clampInt(state.hp + d, 0, 100);
+                state.dayCount += 1;
+
+                // bounty progress simulation: if bounty is fog, count a day where bt>=1
+                if (state.quests.bounty?.id === "bounty-fog") {
+                    if (state.today.bt >= 1) state.quests.bounty.progress += 1;
+                    if (state.quests.bounty.progress >= state.quests.bounty.target) {
+                        // bounty reward: hp full + 25 xp (as per spec)
+                        state.hp = 100;
+                        state.xp += 25;
+                        toast("☠️ 討伐完成：『懶惰之霧』已驅散。HP 回滿 +25 XP");
+                        state.quests.bounty = null;
+                    }
+                }
+
+                // reset today inputs
+                state.today = { bt: 0, live: "none", emo: false };
+                state.lastReportHash = "";
+
+                // if hp low, maybe spawn bounty
+                if (!state.quests.bounty) state.quests.bounty = maybeSpawnBounty();
+
+                // if HP hits 0, enforce penalty suggestion (A or C)
+                if (state.hp === 0) {
+                    toast("☠️ HP 歸零：明天必須執行『時間型 30–60 分鐘』或『剝奪型 24 小時』其一。");
+                } else {
+                    toast(`🌙 結束今日：HP ${d}（扣血/情緒單/沒回測）。`);
+                }
+                state.quests.daily = [];
+                saveState();
+                syncInputsFromState();
+                renderBoard();
+                renderHUD();
+            }
+
+            function resetAll() {
+                if (!confirm("確定要重置存檔嗎？（等級/XP/HP 會歸零）")) return;
+                state = defaultState();
+                saveState();
+                syncInputsFromState();
+                renderBoard();
+                renderHUD();
+                toast("已重置。重新開始。");
+            }
+
+            function updateBacktest(delta) {
+                const cur = clampInt(btCount.value, 0, 9999);
+                const next = Math.max(0, cur + delta);
+                btCount.value = next;
+
+                // 讓你原本的 change 監聽吃到更新
+                btCount.dispatchEvent(new Event("change", { bubbles: true }));
+            }
+
+            /** ---------- Utils ---------- */
+            function clampInt(v, min, max) {
+                const n = Number.parseInt(v, 10);
+                if (Number.isNaN(n)) return min;
+                return Math.max(min, Math.min(max, n));
+            }
+
+            function shuffle(arr) {
+                for (let i = arr.length - 1; i > 0; i--) {
+                    const j = Math.floor(Math.random() * (i + 1));
+                    [arr[i], arr[j]] = [arr[j], arr[i]];
+                }
+            }
+
+            function escapeHTML(s) {
+                return String(s).replace(/[&<>"']/g, c => ({
+                    "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
+                }[c]));
+            }
+
+            function toast(msg) {
+                // Minimal toast using alert-like, but non-blocking
+                const t = document.createElement("div");
+                t.textContent = msg;
+                t.style.position = "fixed";
+                t.style.left = "50%";
+                t.style.bottom = "16px";
+                t.style.transform = "translateX(-50%)";
+                t.style.background = "rgba(0,0,0,.55)";
+                t.style.border = "1px solid rgba(255,255,255,.12)";
+                t.style.padding = "10px 12px";
+                t.style.borderRadius = "14px";
+                t.style.boxShadow = "0 18px 40px rgba(0,0,0,.55)";
+                t.style.backdropFilter = "blur(8px)";
+                t.style.zIndex = 9999;
+                t.style.maxWidth = "92vw";
+                t.style.fontSize = "13px";
+                document.body.appendChild(t);
+                setTimeout(() => t.style.opacity = "0", 2200);
+                setTimeout(() => t.remove(), 2600);
+            }
+
+            /** ---------- Wire ---------- */
+            emoWrap.addEventListener("click", (e) => {
+                if (e.target.tagName.toLowerCase() !== "input") emoTrade.checked = !emoTrade.checked;
+            });
+
+            [btCount, liveNote, emoTrade].forEach(el => {
+                el.addEventListener("change", () => {
+                    syncStateFromInputs();
+                    saveState();
+                    renderHUD();
+                });
+            });
+
+            btnGetQuests.addEventListener("click", getQuests);
+            dailySlot.addEventListener("click", (e) => {
+                const btn = e.target.closest(".daily-toggle");
+                if (!btn) return;
+
+                const id = btn.dataset.id;
+                if (!id) return;
+
+                const q = state.quests.daily.find(x => x.id === id);
+                if (!q) return;
+
+                q.done = !q.done;
+                if (q.done && !q.paid) {
+                    state.xp += (q.xpReward ?? 0);
+                    state.hp = clampInt(state.hp + (q.hpReward ?? 0), 0, 100);
+                    q.paid = true;
+                    tryLevelUp();
+                }
+
+                saveState();
+                renderBoard();
+                renderHUD(); // 可選：你如果想 NPC 台詞也更新
+            });
+            btnReport.addEventListener("click", reportComplete);
+            btnEndDay.addEventListener("click", endDay);
+            btnReset.addEventListener("click", resetAll);
+            btMinus.addEventListener("click", () => updateBacktest(-1));
+            btPlus.addEventListener("click", () => updateBacktest(+1));
+
+            // init
+            syncInputsFromState();
+            renderBoard();
+            renderHUD();
+
+        })();
+    </script>
+</body>
+
+</html>
